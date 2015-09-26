@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         RohBot Currency Converter
-// @version      1.0
+// @version      1.1
 // @description  Allows the user to select their currency and then converts any found currencies to the one the user selected
 // @author       Spans
 // @match        https://rohbot.net
 // @grant        none
+// @updateURL	 https://raw.githubusercontent.com/Spanfile/RohBot-Currency-Converter/master/converter.js
 // ==/UserScript==
 
 chatMgr.lineFilter.add(function(line, prepend, e) {
