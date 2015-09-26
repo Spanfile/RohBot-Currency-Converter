@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         RohBot Currency Converter
-// @version      1.2
+// @version      1.3
 // @description  Allows the user to select their currency and then converts any found currencies to the one the user selected
 // @author       Spans
 // @match        https://rohbot.net
@@ -12,14 +12,21 @@ chatMgr.lineFilter.add(function(line, prepend, e) {
 	line.Content = applyConversions(line.Content);
 });
 
-var user = "usd";
+var user = "eur";
 
+// the &#163; in some regexes is for £
 var conversions = {
 	usd: {
-		eur: function(message) { return commonConversion(message, /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)(?:€)(?=\s|$)/ig, 1.11972, "USD") },
+		eur: function(message) { return commonConversion(message, /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)€(?=\s|$)/ig, 1.119, "USD") },
+		gbp: function(message) { return commonConversion(message, /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)&#163;(?=\s|$)/ig, 1.518, "USD") },
 	},
 	eur: {
-		usd: function(message) { return commonConversion(message, /(?:\s|^)(?:\$)(\d+(?:(?:\.|,)\d+)?)?(?=\s|$)/ig, 0.8930, "EUR"); },
+		usd: function(message) { return commonConversion(message, /(?:\s|^)\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$)/ig, 0.893, "EUR"); },
+		gbp: function(message) { return commonConversion(message, /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)&#163;(?=\s|$)/ig, 1.355, "EUR") },
+	},
+	gbp: {
+		eur: function(message) { return commonConversion(message, /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)€(?=\s|$)/ig, 0.737, "GBP") },
+		usd: function(message) { return commonConversion(message, /(?:\s|^)\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$)/ig, 0.658, "GBP") },
 	},
 };
 
