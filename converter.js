@@ -16,10 +16,10 @@ var user = "usd";
 
 var conversions = {
 	usd: {
-		eur: function(message) { return commonConversion(message, /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)(€)(?=\s|$)/ig, 1.11972, "USD") },
+		eur: function(message) { return commonConversion(message, /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)(?:€)(?=\s|$)/ig, 1.11972, "USD") },
 	},
 	eur: {
-		usd: function(message) { return commonConversion(message, /(?:\s|^)(\$)(\d+(?:(?:\.|,)\d+)?)?(?=\s|$)/ig, 0.8930, "EUR"); },
+		usd: function(message) { return commonConversion(message, /(?:\s|^)(?:\$)(\d+(?:(?:\.|,)\d+)?)?(?=\s|$)/ig, 0.8930, "EUR"); },
 	},
 };
 
