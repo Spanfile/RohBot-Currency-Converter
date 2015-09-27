@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         RohBot Currency Converter
-// @version      1.8
+// @version      1.9
 // @description  Allows the user to select their currency and then converts any found currencies to the one the user selected
 // @author       Spans
 // @match        https://rohbot.net
@@ -33,13 +33,15 @@ var user = "eur";
 
 // the &#163; is for £
 var currencies = {
-	usd: { regexes: [ /(?:\s|^)\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$)/ig, /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)(?: dollars)(?=\s|$)/ig ], name: "USD" },
-	eur: { regexes: [ /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)(?:€|e| eur(?:o|os)?)?(?=\s|$)/ig ], name: "EUR" },
-	gbp: { regexes: [ /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)&#163;(?=\s|$)/ig ], name: "GBP" },
-	cad: { regexes: [ /(?:\s|^)CA\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$)/ig ], name: "CAD" },
-	aud: { regexes: [ /(?:\s|^)A\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$)/ig ], name: "AUD" },
-	nzd: { regexes: [ /(?:\s|^)NZ\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$)/ig ], name: "NZD" },
-	sek: { regexes: [ /(?:\s|^)(\d+(?:(?:\.|,)\d+)?) ?kr(?=\s|$)/ig ], name: "SEK" },
+	usd: { regexes: [ /(?:\s|^|,|\.|!|\?)\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$)/ig, /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)(?: dollars)(?=\s|$|,|\.|!|\?)/ig ], name: "USD" },
+	eur: { regexes: [ /(?:\s|^|,|\.|!|\?)(\d+(?:(?:\.|,)\d+)?)(?:€|e| eur(?:o|os)?)(?=\s|$|,|\.|!|\?)/ig ], name: "EUR" },
+	gbp: { regexes: [ /(?:\s|^|,|\.|!|\?)(\d+(?:(?:\.|,)\d+)?)&#163;(?=\s|$|,|\.|!|\?)/ig ], name: "GBP" },
+	cad: { regexes: [ /(?:\s|^|,|\.|!|\?)CA\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$|,|\.|!|\?)/ig ], name: "CAD" },
+	aud: { regexes: [ /(?:\s|^|,|\.|!|\?)A\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$|,|\.|!|\?)/ig ], name: "AUD" },
+	nzd: { regexes: [ /(?:\s|^|,|\.|!|\?)NZ\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$|,|\.|!|\?)/ig ], name: "NZD" },
+	sek: { regexes: [ /(?:\s|^|,|\.|!|\?)(\d+(?:(?:\.|,)\d+)?) ?kr(?=\s|$|,|\.|!|\?)/ig ], name: "SEK" }, // kr defaults to swedish kronor
+	nok: { regexes: [ /(?:\s|^|,|\.|!|\?)(\d+(?:(?:\.|,)\d+)?) ?nok(?=\s|$|,|\.|!|\?)/ig ], name: "NOK" }, // special cases for norwegian and danish kronor whatevers
+	dkk: { regexes: [ /(?:\s|^|,|\.|!|\?)(\d+(?:(?:\.|,)\d+)?) ?dkk(?=\s|$|,|\.|!|\?)/ig ], name: "DKK" }
 };
 
 function applyConversions(message) {
