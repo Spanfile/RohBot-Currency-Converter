@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         RohBot Currency Converter
-// @version      1.4
+// @version      1.5
 // @description  Allows the user to select their currency and then converts any found currencies to the one the user selected
 // @author       Spans
 // @match        https://rohbot.net
@@ -19,7 +19,7 @@ $.getJSON("https://api.fixer.io/latest", function(data) {
 		var fxSetup = {
 			rates: data.rates,
 			base: base.rates
-		}
+		};
 	}
 	
 	//console.log("Currency test: €1 = $" + fx(1).from("EUR").to("USD"));
@@ -31,32 +31,28 @@ chatMgr.lineFilter.add(function(line, prepend, e) {
 
 var user = "eur";
 
-// the &#163; in some regexes is for £
-var conversions = {
-	usd: {
-		eur: function(message) { return commonConversion(message, /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)€(?=\s|$)/ig, "EUR", "USD") },
-		gbp: function(message) { return commonConversion(message, /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)&#163;(?=\s|$)/ig, "GBP", "USD") },
-	},
-	eur: {
-		usd: function(message) { return commonConversion(message, /(?:\s|^)\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$)/ig, "USD", "EUR"); },
-		gbp: function(message) { return commonConversion(message, /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)&#163;(?=\s|$)/ig, "GBP", "EUR") },
-	},
-	gbp: {
-		eur: function(message) { return commonConversion(message, /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)€(?=\s|$)/ig, "EUR", "GBP") },
-		usd: function(message) { return commonConversion(message, /(?:\s|^)\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$)/ig, "USD", "GBP") },
-	},
+// the &#163; is for £
+var currencies = {
+	usd: { regex: /(?:\s|^)\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$)/ig, name: "USD" },
+	eur: { regex: /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)€(?=\s|$)/ig, name: "EUR" },
+	gbp: { regex: /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)&#163;(?=\s|$)/ig, name: "GBP" }
 };
 
 function applyConversions(message) {
-	var results = new Array();
-	var userConversion = conversions[user];
+	var results = [];
+	var userCurrency = currencies[user.toLowerCase()]; // toLowerCase() in case it's in upper case
 	
-	for (var converter in userConversion) {
-		if (userConversion.hasOwnProperty(converter)) {
-			var result = userConversion[converter](message);
+	// try to find and convert any currencies except the users currency found in the message to the users currency
+	for (var key in currencies) {
+		if (currencies.hasOwnProperty(key)) { // hasOwnProperty() makes sure we don't loop over stuff inherited from the object's prototype
+			var currency = currencies[key];
 			
-			if (result.length > 0) {
-				results.push(result);
+			if (currency.name != userCurrency.name) {
+				var result = commonConversion(message, currency, userCurrency);
+				
+				if (result.length > 0) {
+					results.push(result);
+				}
 			}
 		}
 	}
@@ -103,18 +99,18 @@ function applyConversions(message) {
 	return newMsg;
 }
 
-function commonConversion(message, regex, from, to) {
+function commonConversion(message, from, to) {
 	var m;
 	var results = [];
-	while ((m = regex.exec(message)) !== null) {
-		if (m.index === regex.lastIndex) {
+	while ((m = from.regex.exec(message)) !== null) {
+		if (m.index === from.regex.lastIndex) {
 			regex.lastIndex++;
 		}
 
 		var amount = Number(m[1].replace(',', '.')); // js wants dots as decimal separators
-		var converted = Math.round(fx(amount).from(from).to(to) * 100) / 100; // two decimals is enough for currencies
+		var converted = Math.round(fx(amount).from(from.name).to(to.name) * 100) / 100; // two decimals is enough for currencies
 		
-		results[results.length] = {original:m[0], index:m.index, conversion:converted, unit:to};
+		results[results.length] = {original:m[0], index:m.index, conversion:converted, unit:to.name};
 	}
 
 	return results;
