@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         RohBot Currency Converter
-// @version      1.7
+// @version      1.8
 // @description  Allows the user to select their currency and then converts any found currencies to the one the user selected
 // @author       Spans
 // @match        https://rohbot.net
@@ -34,7 +34,7 @@ var user = "eur";
 // the &#163; is for £
 var currencies = {
 	usd: { regexes: [ /(?:\s|^)\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$)/ig, /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)(?: dollars)(?=\s|$)/ig ], name: "USD" },
-	eur: { regexes: [ /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)€(?=\s|$)/ig ], name: "EUR" },
+	eur: { regexes: [ /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)(?:€|e| eur(?:o|os)?)?(?=\s|$)/ig ], name: "EUR" },
 	gbp: { regexes: [ /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)&#163;(?=\s|$)/ig ], name: "GBP" },
 	cad: { regexes: [ /(?:\s|^)CA\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$)/ig ], name: "CAD" },
 	aud: { regexes: [ /(?:\s|^)A\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$)/ig ], name: "AUD" },
