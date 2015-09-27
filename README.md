@@ -7,3 +7,7 @@ Only tested in Chrome using [Tampermonkey](http://tampermonkey.net/).
 * USD
 * EUR
 * GBP
+* CAD
+* AUD
+* NZD
+* SEK
