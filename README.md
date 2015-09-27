@@ -11,3 +11,5 @@ Only tested in Chrome using [Tampermonkey](http://tampermonkey.net/).
 * AUD
 * NZD
 * SEK
+* NOK
+* DKK
