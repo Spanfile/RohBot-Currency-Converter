@@ -1,12 +1,29 @@
 // ==UserScript==
 // @name         RohBot Currency Converter
-// @version      1.3
+// @version      1.4
 // @description  Allows the user to select their currency and then converts any found currencies to the one the user selected
 // @author       Spans
 // @match        https://rohbot.net
 // @grant        none
 // @updateURL	 https://raw.githubusercontent.com/Spanfile/RohBot-Currency-Converter/master/converter.js
+// @require		 http://openexchangerates.github.io/money.js/money.min.js
+// @require		 http://code.jquery.com/jquery-2.1.4.min.js
 // ==/UserScript==
+
+// first of all, setup the currency conversion
+$.getJSON("https://api.fixer.io/latest", function(data) {
+	if (typeof fx !== "undefined" && fx.rates) {
+		fx.rates = data.rates;
+		fx.base = data.base;
+	} else {
+		var fxSetup = {
+			rates: data.rates,
+			base: base.rates
+		}
+	}
+	
+	//console.log("Currency test: €1 = $" + fx(1).from("EUR").to("USD"));
+});
 
 chatMgr.lineFilter.add(function(line, prepend, e) {
 	line.Content = applyConversions(line.Content);
@@ -17,16 +34,16 @@ var user = "eur";
 // the &#163; in some regexes is for £
 var conversions = {
 	usd: {
-		eur: function(message) { return commonConversion(message, /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)€(?=\s|$)/ig, 1.119, "USD") },
-		gbp: function(message) { return commonConversion(message, /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)&#163;(?=\s|$)/ig, 1.518, "USD") },
+		eur: function(message) { return commonConversion(message, /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)€(?=\s|$)/ig, "EUR", "USD") },
+		gbp: function(message) { return commonConversion(message, /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)&#163;(?=\s|$)/ig, "GBP", "USD") },
 	},
 	eur: {
-		usd: function(message) { return commonConversion(message, /(?:\s|^)\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$)/ig, 0.893, "EUR"); },
-		gbp: function(message) { return commonConversion(message, /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)&#163;(?=\s|$)/ig, 1.355, "EUR") },
+		usd: function(message) { return commonConversion(message, /(?:\s|^)\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$)/ig, "USD", "EUR"); },
+		gbp: function(message) { return commonConversion(message, /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)&#163;(?=\s|$)/ig, "GBP", "EUR") },
 	},
 	gbp: {
-		eur: function(message) { return commonConversion(message, /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)€(?=\s|$)/ig, 0.737, "GBP") },
-		usd: function(message) { return commonConversion(message, /(?:\s|^)\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$)/ig, 0.658, "GBP") },
+		eur: function(message) { return commonConversion(message, /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)€(?=\s|$)/ig, "EUR", "GBP") },
+		usd: function(message) { return commonConversion(message, /(?:\s|^)\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$)/ig, "USD", "GBP") },
 	},
 };
 
@@ -86,7 +103,7 @@ function applyConversions(message) {
 	return newMsg;
 }
 
-function commonConversion(message, regex, rate, unit) {
+function commonConversion(message, regex, from, to) {
 	var m;
 	var results = [];
 	while ((m = regex.exec(message)) !== null) {
@@ -95,9 +112,9 @@ function commonConversion(message, regex, rate, unit) {
 		}
 
 		var amount = Number(m[1].replace(',', '.')); // js wants dots as decimal separators
-		var converted = Math.round((amount * rate) * 100) / 100; // two decimals is enough for currencies
+		var converted = Math.round(fx(amount).from(from).to(to) * 100) / 100; // two decimals is enough for currencies
 		
-		results[results.length] = {original:m[0], index:m.index, conversion:converted, unit:unit};
+		results[results.length] = {original:m[0], index:m.index, conversion:converted, unit:to};
 	}
 
 	return results;
