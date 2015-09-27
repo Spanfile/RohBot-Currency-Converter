@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         RohBot Currency Converter
-// @version      1.6
+// @version      1.7
 // @description  Allows the user to select their currency and then converts any found currencies to the one the user selected
 // @author       Spans
 // @match        https://rohbot.net
@@ -33,13 +33,13 @@ var user = "eur";
 
 // the &#163; is for £
 var currencies = {
-	usd: { regex: /(?:\s|^)\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$)/ig, name: "USD" },
-	eur: { regex: /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)€(?=\s|$)/ig, name: "EUR" },
-	gbp: { regex: /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)&#163;(?=\s|$)/ig, name: "GBP" },
-	cad: { regex: /(?:\s|^)CA\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$)/ig, name: "CAD" },
-	aud: { regex: /(?:\s|^)A\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$)/ig, name: "AUD" },
-	nzd: { regex: /(?:\s|^)NZ\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$)/ig, name: "NZD" },
-	sek: { regex: /(?:\s|^)(\d+(?:(?:\.|,)\d+)?) ?kr(?=\s|$)/ig, name: "SEK" },
+	usd: { regexes: [ /(?:\s|^)\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$)/ig, /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)(?: dollars)(?=\s|$)/ig ], name: "USD" },
+	eur: { regexes: [ /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)€(?=\s|$)/ig ], name: "EUR" },
+	gbp: { regexes: [ /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)&#163;(?=\s|$)/ig ], name: "GBP" },
+	cad: { regexes: [ /(?:\s|^)CA\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$)/ig ], name: "CAD" },
+	aud: { regexes: [ /(?:\s|^)A\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$)/ig ], name: "AUD" },
+	nzd: { regexes: [ /(?:\s|^)NZ\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$)/ig ], name: "NZD" },
+	sek: { regexes: [ /(?:\s|^)(\d+(?:(?:\.|,)\d+)?) ?kr(?=\s|$)/ig ], name: "SEK" },
 };
 
 function applyConversions(message) {
@@ -106,16 +106,19 @@ function applyConversions(message) {
 function commonConversion(message, from, to) {
 	var m;
 	var results = [];
-	while ((m = from.regex.exec(message)) !== null) {
-		if (m.index === from.regex.lastIndex) {
-			regex.lastIndex++;
-		}
+	
+	from.regexes.forEach(function(regex) {
+		while ((m = regex.exec(message)) !== null) {
+			if (m.index === regex.lastIndex) {
+				regex.lastIndex++;
+			}
 
-		var amount = Number(m[1].replace(',', '.')); // js wants dots as decimal separators
-		var converted = Math.round(fx(amount).from(from.name).to(to.name) * 100) / 100; // two decimals is enough for currencies
-		
-		results[results.length] = {original:m[0], index:m.index, conversion:converted, unit:to.name};
-	}
+			var amount = Number(m[1].replace(',', '.')); // js wants dots as decimal separators
+			var converted = Math.round(fx(amount).from(from.name).to(to.name) * 100) / 100; // two decimals is enough for currencies
+
+			results[results.length] = {original:m[0], index:m.index, conversion:converted, unit:to.name};
+		}
+	});
 
 	return results;
 }
