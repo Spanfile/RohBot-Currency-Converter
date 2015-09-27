@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         RohBot Currency Converter
-// @version      1.5
+// @version      1.6
 // @description  Allows the user to select their currency and then converts any found currencies to the one the user selected
 // @author       Spans
 // @match        https://rohbot.net
@@ -35,7 +35,11 @@ var user = "eur";
 var currencies = {
 	usd: { regex: /(?:\s|^)\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$)/ig, name: "USD" },
 	eur: { regex: /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)€(?=\s|$)/ig, name: "EUR" },
-	gbp: { regex: /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)&#163;(?=\s|$)/ig, name: "GBP" }
+	gbp: { regex: /(?:\s|^)(\d+(?:(?:\.|,)\d+)?)&#163;(?=\s|$)/ig, name: "GBP" },
+	cad: { regex: /(?:\s|^)CA\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$)/ig, name: "CAD" },
+	aud: { regex: /(?:\s|^)A\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$)/ig, name: "AUD" },
+	nzd: { regex: /(?:\s|^)NZ\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$)/ig, name: "NZD" },
+	sek: { regex: /(?:\s|^)(\d+(?:(?:\.|,)\d+)?) ?kr(?=\s|$)/ig, name: "SEK" },
 };
 
 function applyConversions(message) {
