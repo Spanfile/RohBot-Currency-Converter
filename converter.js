@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         RohBot Currency Converter
-// @version      1.11
+// @version      1.12
 // @description  Allows the user to select their currency and then converts any found currencies to the one the user selected
 // @author       Spans
 // @match        https://rohbot.net
@@ -31,7 +31,6 @@ chatMgr.lineFilter.add(function(line, prepend, e) {
 
 var user = "eur";
 
-// the &#163; is for £
 var currencies = {
 	usd: { name: "USD", regexes: [
 		{ regex: /(?:\s|^|,|\.|!|\?)\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$|,|\.|!|\?)/ig, modifier: 1 },
@@ -44,7 +43,8 @@ var currencies = {
 	eur: { name: "EUR", regexes: [
 		{ regex: /(?:\s|^|,|\.|!|\?)(\d+(?:(?:\.|,)\d+)?)(?:€|e| eur(?:o|os)?)(?=\s|$|,|\.|!|\?)/ig, modifier: 1 }]},
 	gbp: { name: "GBP", regexes: [
-		{ regex: /(?:\s|^|,|\.|!|\?)(\d+(?:(?:\.|,)\d+)?)&#163;(?=\s|$|,|\.|!|\?)/ig, modifier: 1 }]},
+		{ regex: /(?:\s|^|,|\.|!|\?)(\d+(?:(?:\.|,)\d+)?)&#163;(?=\s|$|,|\.|!|\?)/ig, modifier: 1 }, // the &#163; is for £
+		{ regex: /(?:\s|^|,|\.|!|\?)(\d+(?:(?:\.|,)\d+)?)p(?=\s|$|,|\.|!|\?)/ig, modifier: 0.01}]},
 	cad: { name: "CAD", regexes: [
 		{ regex: /(?:\s|^|,|\.|!|\?)CA\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$|,|\.|!|\?)/ig, modifier: 1 }]},
 	aud: { name: "AUD", regexes: [
