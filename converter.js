@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         RohBot Currency Converter
-// @version      1.14
+// @version      1.15
 // @description  Allows the user to select their currency and then converts any found currencies to the one the user selected
 // @author       Spans
 // @match        https://rohbot.net
@@ -33,30 +33,35 @@ var user = "eur";
 
 var currencies = {
 	usd: { name: "USD", regexes: [
-		{ regex: /(?:\s|^|,|\.|!|\?|\*)\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$|,|\.|!|\?|\*)/ig, modifier: 1 },
-		{ regex: /(?:\s|^|,|\.|!|\?|\*)(\d+(?:(?:\.|,)\d+)?)(?: dollars?)(?=\s|$|,|\.|!|\?|\*)/ig, modifier: 1 },
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$|,|\.|!|\?|\*)/ig },
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)(\d+(?:(?:\.|,)\d+)?)\$(?=\s|$|,|\.|!|\?|\*)/ig },
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)(\d+(?:(?:\.|,)\d+)?)(?: dollars?)(?=\s|$|,|\.|!|\?|\*)/ig },
 		{ regex: /(?:\s|^|,|\.|!|\?|\*)(\d+(?:(?:\.|,)\d+)?) penn(?:y|ies)(?=\s|$|,|\.|!|\?|\*)/ig, modifier: 0.01 }, 
 		{ regex: /(?:\s|^|,|\.|!|\?|\*)(\d+(?:(?:\.|,)\d+)?) nickels?(?=\s|$|,|\.|!|\?|\*)/ig, modifier: 0.05 },
 		{ regex: /(?:\s|^|,|\.|!|\?|\*)(\d+(?:(?:\.|,)\d+)?) dimes?(?=\s|$|,|\.|!|\?|\*)/ig, modifier: 0.1 },
 		{ regex: /(?:\s|^|,|\.|!|\?|\*)(\d+(?:(?:\.|,)\d+)?) quarters?(?=\s|$|,|\.|!|\?|\*)/ig, modifier: 0.25 }
 	]},
 	eur: { name: "EUR", regexes: [
-		{ regex: /(?:\s|^|,|\.|!|\?|\*)(\d+(?:(?:\.|,)\d+)?)(?:€|e| eur(?:o|os)?)(?=\s|$|,|\.|!|\?|\*)/ig, modifier: 1 }]},
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)(\d+(?:(?:\.|,)\d+)?)(?:€|e| eur(?:o|os)?)(?=\s|$|,|\.|!|\?|\*)/ig },
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)€(\d+(?:(?:\.|,)\d+)?)(?=\s|$|,|\.|!|\?|\*)/ig }
+	]},
 	gbp: { name: "GBP", regexes: [
-		{ regex: /(?:\s|^|,|\.|!|\?|\*)(\d+(?:(?:\.|,)\d+)?)&#163;(?=\s|$|,|\.|!|\?|\*)/ig, modifier: 1 }, // the &#163; is for £
-		{ regex: /(?:\s|^|,|\.|!|\?|\*)(\d+(?:(?:\.|,)\d+)?)(?:p| pence)(?=\s|$|,|\.|!|\?|\*)/ig, modifier: 0.01}]},
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)(\d+(?:(?:\.|,)\d+)?)&#163;(?=\s|$|,|\.|!|\?|\*)/ig }, // the &#163; is for £
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)&#163;(\d+(?:(?:\.|,)\d+)?)(?=\s|$|,|\.|!|\?|\*)/ig },
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)(\d+(?:(?:\.|,)\d+)?)(?:p| pence)(?=\s|$|,|\.|!|\?|\*)/ig, modifier: 0.01}
+	]},
 	cad: { name: "CAD", regexes: [
-		{ regex: /(?:\s|^|,|\.|!|\?|\*)CA\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$|,|\.|!|\?|\*)/ig, modifier: 1 }]},
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)CA\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$|,|\.|!|\?|\*)/ig }]},
 	aud: { name: "AUD", regexes: [
-		{ regex: /(?:\s|^|,|\.|!|\?|\*)A\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$|,|\.|!|\?|\*)/ig, modifier: 1 }]},
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)A\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$|,|\.|!|\?|\*)/ig }]},
 	nzd: { name: "NZD", regexes: [
-		{ regex: /(?:\s|^|,|\.|!|\?|\*)NZ\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$|,|\.|!|\?|\*)/ig, modifier: 1 }]},
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)NZ\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$|,|\.|!|\?|\*)/ig }]},
 	sek: { name: "SEK", regexes: [
-		{ regex: /(?:\s|^|,|\.|!|\?|\*)(\d+(?:(?:\.|,)\d+)?) ?kr(?=\s|$|,|\.|!|\?|\*)/ig, modifier: 1 }]}, // kr defaults to swedish kronor
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)(\d+(?:(?:\.|,)\d+)?) ?kr(?=\s|$|,|\.|!|\?|\*)/ig }]}, // kr defaults to swedish kronor
 	nok: { name: "NOK", regexes: [
-		{ regex: /(?:\s|^|,|\.|!|\?|\*)(\d+(?:(?:\.|,)\d+)?) ?nok(?=\s|$|,|\.|!|\?|\*)/ig, modifier: 1 }]}, // special cases for norwegian and danish kronor whatevers
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)(\d+(?:(?:\.|,)\d+)?) ?nok(?=\s|$|,|\.|!|\?|\*)/ig }]}, // special cases for norwegian and danish kronor whatevers
 	dkk: { name: "DKK", regexes: [
-		{ regex: /(?:\s|^|,|\.|!|\?|\*)(\d+(?:(?:\.|,)\d+)?) ?dkk(?=\s|$|,|\.|!|\?|\*)/ig, modifier: 1 }]}
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)(\d+(?:(?:\.|,)\d+)?) ?dkk(?=\s|$|,|\.|!|\?|\*)/ig }]}
 };
 
 function applyConversions(message) {
@@ -130,7 +135,7 @@ function commonConversion(message, from, to) {
 				regex.lastIndex++;
 			}
 
-			var amount = Number(m[1].replace(',', '.')) * regexModifierPair.modifier; // js wants dots as decimal separators
+			var amount = Number(m[1].replace(',', '.')) * (regexModifierPair.modifier || 1); // js wants dots as decimal separators
 			var converted = Math.round(fx(amount).from(from.name).to(to.name) * 100) / 100; // two decimals is enough for currencies
 
 			results[results.length] = {original:m[0], index:m.index, conversion:converted, unit:to.name};
