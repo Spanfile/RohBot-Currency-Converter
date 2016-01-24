@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         RohBot Currency Converter
-// @version      1.17
+// @version      1.18
 // @description  Allows the user to select their currency and then converts any found currencies to the one the user selected
 // @author       Spans
 // @match        https://rohbot.net
@@ -8,6 +8,8 @@
 // @updateURL	 https://raw.githubusercontent.com/Spanfile/RohBot-Currency-Converter/master/converter.js
 // @require		 http://openexchangerates.github.io/money.js/money.min.js
 // ==/UserScript==
+
+var enabled = true;
 
 // first of all, setup the currency conversion
 $.getJSON("https://api.fixer.io/latest", function(data) {
@@ -22,9 +24,15 @@ $.getJSON("https://api.fixer.io/latest", function(data) {
 	}
 	
 	//console.log("Currency test: €1 = $" + fx(1).from("EUR").to("USD"));
+}).fail(function() {
+	console.error("Retrieval of the latest currency conversion rates failed.");
+	enabled = false;
 });
 
 chatMgr.lineFilter.add(function(line, prepend, e) {
+	if (!enabled)
+		return;
+	
 	line.Content = applyConversions(line.Content);
 });
 
