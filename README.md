@@ -13,3 +13,4 @@ Only tested in Chrome using [Tampermonkey](http://tampermonkey.net/).
 * SEK
 * NOK
 * DKK
+* ZAR
