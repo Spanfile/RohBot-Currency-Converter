@@ -1,13 +1,12 @@
 // ==UserScript==
 // @name         RohBot Currency Converter
-// @version      1.15
+// @version      1.16
 // @description  Allows the user to select their currency and then converts any found currencies to the one the user selected
 // @author       Spans
 // @match        https://rohbot.net
 // @grant        none
 // @updateURL	 https://raw.githubusercontent.com/Spanfile/RohBot-Currency-Converter/master/converter.js
 // @require		 http://openexchangerates.github.io/money.js/money.min.js
-// @require		 http://code.jquery.com/jquery-2.1.4.min.js
 // ==/UserScript==
 
 // first of all, setup the currency conversion
@@ -29,7 +28,26 @@ chatMgr.lineFilter.add(function(line, prepend, e) {
 	line.Content = applyConversions(line.Content);
 });
 
+cmd.register("currency", "-", function(chat, args) {
+	if (args.length != 1 || args[0].length === 0 || !currencies.hasOwnProperty(args[0])) {
+		chat.statusMessage("Usage: /currency (" + Object.keys(currencies).join("|") + ")");
+	}
+	
+	user = args[0];
+	chat.statusMessage("Your preferred currency has been set to " + currencies[user].name);
+	save();
+});
+
+var storeKey = "spans-currency";
 var user = "eur";
+
+function load() {
+	user = RohStore.get(storeKey) || "eur"; // haha fuck you americans
+}
+
+function save() {
+	RohStore.set(storeKey, user);
+}
 
 var currencies = {
 	usd: { name: "USD", regexes: [
@@ -61,7 +79,9 @@ var currencies = {
 	nok: { name: "NOK", regexes: [
 		{ regex: /(?:\s|^|,|\.|!|\?|\*)(\d+(?:(?:\.|,)\d+)?) ?nok(?=\s|$|,|\.|!|\?|\*)/ig }]}, // special cases for norwegian and danish kronor whatevers
 	dkk: { name: "DKK", regexes: [
-		{ regex: /(?:\s|^|,|\.|!|\?|\*)(\d+(?:(?:\.|,)\d+)?) ?dkk(?=\s|$|,|\.|!|\?|\*)/ig }]}
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)(\d+(?:(?:\.|,)\d+)?) ?dkk(?=\s|$|,|\.|!|\?|\*)/ig }]},
+	zar: { name: "ZAR", regexes: [
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)R(\d+(?:(?:\.|,)\d+)?)(?=\s|$|,|\.|!|\?|\*)/ig }]}
 };
 
 function applyConversions(message) {
@@ -148,3 +168,5 @@ function commonConversion(message, from, to) {
 String.prototype.splice = function(idx, rem, s) {
 	return (this.slice(0, idx) + s + this.slice(idx + Math.abs(rem)));
 };
+
+load();
