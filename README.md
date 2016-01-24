@@ -3,7 +3,13 @@ A userscript for [RohBot](https://rohbot.net) that automatically finds and conve
 
 Only tested in Chrome using [Tampermonkey](http://tampermonkey.net/).
 
-### Currently supports conversions between the following currencies:
+### Usage
+To change your preferred currency: `/currency <currency-name-here-from-the-list-of-supported-currencies-(case-insensitive)>`.
+For example, `/currency usd` sets your preferred currency to US Dollar.
+
+The default currency is Euro.
+
+### Supported currencies:
 * USD
 * EUR
 * GBP
