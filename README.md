@@ -1,6 +1,8 @@
 # RohBot Currency Converter
 A userscript for [RohBot](https://rohbot.net) that automatically finds and converts currencies to user-selected currency.
 
+Currency conversion rates provided by [fixer.io](http://fixer.io/).
+
 Only tested in Chrome using [Tampermonkey](http://tampermonkey.net/).
 
 ### Usage
