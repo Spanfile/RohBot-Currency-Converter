@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         RohBot Currency Converter
-// @version      1.16
+// @version      1.17
 // @description  Allows the user to select their currency and then converts any found currencies to the one the user selected
 // @author       Spans
 // @match        https://rohbot.net
@@ -50,7 +50,7 @@ function save() {
 }
 
 var currencies = {
-	usd: { name: "USD", regexes: [
+	usd: { name: "USD", symbol: "$", pos: "pre", regexes: [
 		{ regex: /(?:\s|^|,|\.|!|\?|\*)\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$|,|\.|!|\?|\*)/ig },
 		{ regex: /(?:\s|^|,|\.|!|\?|\*)(\d+(?:(?:\.|,)\d+)?)\$(?=\s|$|,|\.|!|\?|\*)/ig },
 		{ regex: /(?:\s|^|,|\.|!|\?|\*)(\d+(?:(?:\.|,)\d+)?)(?: dollars?)(?=\s|$|,|\.|!|\?|\*)/ig },
@@ -59,28 +59,28 @@ var currencies = {
 		{ regex: /(?:\s|^|,|\.|!|\?|\*)(\d+(?:(?:\.|,)\d+)?) dimes?(?=\s|$|,|\.|!|\?|\*)/ig, modifier: 0.1 },
 		{ regex: /(?:\s|^|,|\.|!|\?|\*)(\d+(?:(?:\.|,)\d+)?) quarters?(?=\s|$|,|\.|!|\?|\*)/ig, modifier: 0.25 }
 	]},
-	eur: { name: "EUR", regexes: [
+	eur: { name: "EUR", symbol: "€", pos: "post", regexes: [
 		{ regex: /(?:\s|^|,|\.|!|\?|\*)(\d+(?:(?:\.|,)\d+)?)(?:€|e| eur(?:o|os)?)(?=\s|$|,|\.|!|\?|\*)/ig },
 		{ regex: /(?:\s|^|,|\.|!|\?|\*)€(\d+(?:(?:\.|,)\d+)?)(?=\s|$|,|\.|!|\?|\*)/ig }
 	]},
-	gbp: { name: "GBP", regexes: [
+	gbp: { name: "GBP", symbol: "£", pos: "pre", regexes: [
 		{ regex: /(?:\s|^|,|\.|!|\?|\*)(\d+(?:(?:\.|,)\d+)?)&#163;(?=\s|$|,|\.|!|\?|\*)/ig }, // the &#163; is for £
 		{ regex: /(?:\s|^|,|\.|!|\?|\*)&#163;(\d+(?:(?:\.|,)\d+)?)(?=\s|$|,|\.|!|\?|\*)/ig },
 		{ regex: /(?:\s|^|,|\.|!|\?|\*)(\d+(?:(?:\.|,)\d+)?)(?:p| pence)(?=\s|$|,|\.|!|\?|\*)/ig, modifier: 0.01}
 	]},
-	cad: { name: "CAD", regexes: [
+	cad: { name: "CAD", symbol: "CA$", pos: "pre", regexes: [
 		{ regex: /(?:\s|^|,|\.|!|\?|\*)CA\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$|,|\.|!|\?|\*)/ig }]},
-	aud: { name: "AUD", regexes: [
+	aud: { name: "AUD", symbol: "A$", pos: "pre", regexes: [
 		{ regex: /(?:\s|^|,|\.|!|\?|\*)A\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$|,|\.|!|\?|\*)/ig }]},
-	nzd: { name: "NZD", regexes: [
+	nzd: { name: "NZD", symbol: "NZ$", pos :"pre", regexes: [
 		{ regex: /(?:\s|^|,|\.|!|\?|\*)NZ\$(\d+(?:(?:\.|,)\d+)?)(?=\s|$|,|\.|!|\?|\*)/ig }]},
-	sek: { name: "SEK", regexes: [
+	sek: { name: "SEK", symbol: " kr", pos: "post", regexes: [
 		{ regex: /(?:\s|^|,|\.|!|\?|\*)(\d+(?:(?:\.|,)\d+)?) ?kr(?=\s|$|,|\.|!|\?|\*)/ig }]}, // kr defaults to swedish kronor
-	nok: { name: "NOK", regexes: [
+	nok: { name: "NOK", symbol: " nok", pos: "post", regexes: [
 		{ regex: /(?:\s|^|,|\.|!|\?|\*)(\d+(?:(?:\.|,)\d+)?) ?nok(?=\s|$|,|\.|!|\?|\*)/ig }]}, // special cases for norwegian and danish kronor whatevers
-	dkk: { name: "DKK", regexes: [
+	dkk: { name: "DKK", symbol: " dkk", pos: "post", regexes: [
 		{ regex: /(?:\s|^|,|\.|!|\?|\*)(\d+(?:(?:\.|,)\d+)?) ?dkk(?=\s|$|,|\.|!|\?|\*)/ig }]},
-	zar: { name: "ZAR", regexes: [
+	zar: { name: "ZAR", symbol: "R", pos: "pre", regexes: [
 		{ regex: /(?:\s|^|,|\.|!|\?|\*)R(\d+(?:(?:\.|,)\d+)?)(?=\s|$|,|\.|!|\?|\*)/ig }]}
 };
 
@@ -125,7 +125,7 @@ function applyConversions(message) {
 	var inserted = 0;
 	// combine them all
 	flattened.forEach(function(result) {
-		var title = result.conversion.toLocaleString("en-IN", {style: "currency", currency: result.unit});
+		var title = formatCurrency(result.conversion, result.currency);
 		var original = result.original;
 		var begin = "";
 		
@@ -158,11 +158,15 @@ function commonConversion(message, from, to) {
 			var amount = Number(m[1].replace(',', '.')) * (regexModifierPair.modifier || 1); // js wants dots as decimal separators
 			var converted = Math.round(fx(amount).from(from.name).to(to.name) * 100) / 100; // two decimals is enough for currencies
 
-			results[results.length] = {original:m[0], index:m.index, conversion:converted, unit:to.name};
+			results[results.length] = {original: m[0], index: m.index, conversion: converted, currency: to};
 		}
 	});
 
 	return results;
+}
+
+function formatCurrency(value, currency) {
+	return currency.pos === "pre" ? currency.symbol + value : value + currency.symbol;
 }
 
 String.prototype.splice = function(idx, rem, s) {
