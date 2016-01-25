@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         RohBot Currency Converter
-// @version      1.18
+// @version      1.19
 // @description  Allows the user to select their currency and then converts any found currencies to the one the user selected
 // @author       Spans
 // @match        https://rohbot.net
@@ -9,53 +9,10 @@
 // @require		 http://openexchangerates.github.io/money.js/money.min.js
 // ==/UserScript==
 
-var enabled = true;
-
-// first of all, setup the currency conversion
-$.getJSON("https://api.fixer.io/latest", function(data) {
-	if (typeof fx !== "undefined" && fx.rates) {
-		fx.rates = data.rates;
-		fx.base = data.base;
-	} else {
-		var fxSetup = {
-			rates: data.rates,
-			base: base.rates
-		};
-	}
-	
-	//console.log("Currency test: €1 = $" + fx(1).from("EUR").to("USD"));
-}).fail(function() {
-	console.error("Retrieval of the latest currency conversion rates failed.");
-	enabled = false;
-});
-
-chatMgr.lineFilter.add(function(line, prepend, e) {
-	if (!enabled)
-		return;
-	
-	line.Content = applyConversions(line.Content);
-});
-
-cmd.register("currency", "-", function(chat, args) {
-	if (args.length != 1 || args[0].length === 0 || !currencies.hasOwnProperty(args[0])) {
-		chat.statusMessage("Usage: /currency (" + Object.keys(currencies).join("|") + ")");
-	}
-	
-	user = args[0];
-	chat.statusMessage("Your preferred currency has been set to " + currencies[user].name);
-	save();
-});
-
+var cacheKey = "spans-currency-cache";
 var storeKey = "spans-currency";
+var enabled = false;
 var user = "eur";
-
-function load() {
-	user = RohStore.get(storeKey) || "eur"; // haha fuck you americans
-}
-
-function save() {
-	RohStore.set(storeKey, user);
-}
 
 var currencies = {
 	usd: { name: "USD", symbol: "$", pos: "pre", regexes: [
@@ -91,6 +48,52 @@ var currencies = {
 	zar: { name: "ZAR", symbol: "R", pos: "pre", regexes: [
 		{ regex: /(?:\s|^|,|\.|!|\?|\*)R(\d+(?:(?:\.|,)\d+)?)(?=\s|$|,|\.|!|\?|\*)/ig }]}
 };
+
+// first of all, setup the currency conversion
+var cached = JSON.parse(RohStore.get(cacheKey) || "{}");
+if (cached != {}) {
+	fx.rates = cached;
+	enabled = true;
+}
+
+$.getJSON("https://api.fixer.io/latest", function(data) {
+	if (typeof fx !== "undefined" && fx.rates) {
+		fx.rates = data.rates;
+		enabled = true;
+		cacheRates();
+	}
+	
+	//console.log("Currency test: €1 = $" + fx(1).from("EUR").to("USD"));
+});
+
+function cacheRates() {
+	RohStore.set(cacheKey, JSON.stringify(fx.rates));
+}
+
+function load() {
+	user = RohStore.get(storeKey) || "eur"; // haha fuck you americans
+}
+
+function save() {
+	RohStore.set(storeKey, user);
+}
+
+chatMgr.lineFilter.add(function(line, prepend, e) {
+	if (!enabled)
+		return;
+	
+	line.Content = applyConversions(line.Content);
+});
+
+cmd.register("currency", "-", function(chat, args) {
+	if (args.length != 1 || args[0].length === 0 || !currencies.hasOwnProperty(args[0])) {
+		chat.statusMessage("Usage: /currency (" + Object.keys(currencies).join("|") + ")");
+	}
+	
+	user = args[0];
+	chat.statusMessage("Your preferred currency has been set to " + currencies[user].name);
+	save();
+});
 
 function applyConversions(message) {
 	var results = [];
@@ -162,7 +165,7 @@ function commonConversion(message, from, to) {
 			if (m.index === regexModifierPair.regex.lastIndex) {
 				regex.lastIndex++;
 			}
-
+			
 			var amount = Number(m[1].replace(',', '.')) * (regexModifierPair.modifier || 1); // js wants dots as decimal separators
 			var converted = Math.round(fx(amount).from(from.name).to(to.name) * 100) / 100; // two decimals is enough for currencies
 
