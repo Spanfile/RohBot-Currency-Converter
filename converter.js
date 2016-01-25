@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         RohBot Currency Converter
-// @version      1.19
+// @version      1.20
 // @description  Allows the user to select their currency and then converts any found currencies to the one the user selected
 // @author       Spans
 // @match        https://rohbot.net
@@ -50,9 +50,9 @@ var currencies = {
 };
 
 // first of all, setup the currency conversion
-var cached = JSON.parse(RohStore.get(cacheKey) || "{}");
-if (cached != {}) {
-	fx.rates = cached;
+var cached = RohStore.get(cacheKey);
+if (cached) {
+	fx.rates = JSON.parse(cached);
 	enabled = true;
 }
 
