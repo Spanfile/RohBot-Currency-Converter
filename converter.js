@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         RohBot Currency Converter
-// @version      1.20
+// @version      1.21
 // @description  Allows the user to select their currency and then converts any found currencies to the one the user selected
 // @author       Spans
 // @match        https://rohbot.net
@@ -52,12 +52,15 @@ var currencies = {
 // first of all, setup the currency conversion
 var cached = RohStore.get(cacheKey);
 if (cached) {
-	fx.rates = JSON.parse(cached);
+	var cachedObj = JSON.parse(cached);
+	fx.base = cachedObj.base;
+	fx.rates = cachedObj.rates;
 	enabled = true;
 }
 
 $.getJSON("https://api.fixer.io/latest", function(data) {
 	if (typeof fx !== "undefined" && fx.rates) {
+		fx.base = data.base;
 		fx.rates = data.rates;
 		enabled = true;
 		cacheRates();
@@ -67,7 +70,10 @@ $.getJSON("https://api.fixer.io/latest", function(data) {
 });
 
 function cacheRates() {
-	RohStore.set(cacheKey, JSON.stringify(fx.rates));
+	RohStore.set(cacheKey, JSON.stringify({
+		base: fx.base,
+		rates: fx.rates
+	}));
 }
 
 function load() {
