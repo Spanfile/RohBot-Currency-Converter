@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         RohBot Currency Converter
-// @version      1.22
+// @version      1.23
 // @description  Allows the user to select their currency and then converts any found currencies to the one the user selected
 // @author       Spans
 // @match        https://rohbot.net
@@ -172,10 +172,19 @@ function commonConversion(message, from, to) {
 				regex.lastIndex++;
 			}
 			
-			var amount = Number(m[1].replace(',', '.')) * (regexModifierPair.modifier || 1); // js wants dots as decimal separators
+			var offset = 0;
+			var amountStr = m[1];
+			
+			if (amountStr.substring(0, 1) == ",") {
+				amountStr = amountStr.substring(1);
+				m[0] = m[0].substring(1);
+				offset = 1;
+			}
+			
+			var amount = Number(amountStr.replace(",", "")) * (regexModifierPair.modifier || 1);
 			var converted = Math.round(fx(amount).from(from.name).to(to.name) * 100) / 100; // two decimals is enough for currencies
 
-			results[results.length] = {original: m[0], index: m.index, conversion: converted, currency: to};
+			results[results.length] = {original: m[0], index: m.index + offset, conversion: converted, currency: to};
 		}
 	});
 
