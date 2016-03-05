@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         RohBot Currency Converter
-// @version      1.23
+// @version      1.24
 // @description  Allows the user to select their currency and then converts any found currencies to the one the user selected
 // @author       Spans
 // @match        https://rohbot.net
@@ -14,39 +14,45 @@ var storeKey = "spans-currency";
 var enabled = false;
 var user = "eur";
 
+var prefixes = {
+	"k": 1000,
+	"m": 1000000,
+	"b": 1000000000
+}
+
 var currencies = {
 	usd: { name: "USD", symbol: "$", pos: "pre", regexes: [
-		{ regex: /(?:\s|^|,|\.|!|\?|\*)\$([\d,]+(?:\.\d+)?)(?=\s|$|,|\.|!|\?|\*)/ig },
-		{ regex: /(?:\s|^|,|\.|!|\?|\*)([\d,]+(?:\.\d+)?)\$(?=\s|$|,|\.|!|\?|\*)/ig },
-		{ regex: /(?:\s|^|,|\.|!|\?|\*)([\d,]+(?:\.\d+)?)(?: dollars?)(?=\s|$|,|\.|!|\?|\*)/ig },
-		{ regex: /(?:\s|^|,|\.|!|\?|\*)([\d,]+(?:\.\d+)?) penn(?:y|ies)(?=\s|$|,|\.|!|\?|\*)/ig, modifier: 0.01 }, 
-		{ regex: /(?:\s|^|,|\.|!|\?|\*)([\d,]+(?:\.\d+)?) nickels?(?=\s|$|,|\.|!|\?|\*)/ig, modifier: 0.05 },
-		{ regex: /(?:\s|^|,|\.|!|\?|\*)([\d,]+(?:\.\d+)?) dimes?(?=\s|$|,|\.|!|\?|\*)/ig, modifier: 0.1 },
-		{ regex: /(?:\s|^|,|\.|!|\?|\*)([\d,]+(?:\.\d+)?) quarters?(?=\s|$|,|\.|!|\?|\*)/ig, modifier: 0.25 }
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)\$([\d,]+(?:\.\d+)?)([kmb])?(?=\s|$|,|\.|!|\?|\*)/ig },
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)([\d,]+(?:\.\d+)?)([kmb])?\$(?=\s|$|,|\.|!|\?|\*)/ig },
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)([\d,]+(?:\.\d+)?)([kmb])?(?: dollars?)(?=\s|$|,|\.|!|\?|\*)/ig },
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)([\d,]+(?:\.\d+)?)([kmb])? penn(?:y|ies)(?=\s|$|,|\.|!|\?|\*)/ig, modifier: 0.01 }, 
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)([\d,]+(?:\.\d+)?)([kmb])? nickels?(?=\s|$|,|\.|!|\?|\*)/ig, modifier: 0.05 },
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)([\d,]+(?:\.\d+)?)([kmb])? dimes?(?=\s|$|,|\.|!|\?|\*)/ig, modifier: 0.1 },
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)([\d,]+(?:\.\d+)?)([kmb])? quarters?(?=\s|$|,|\.|!|\?|\*)/ig, modifier: 0.25 }
 	]},
 	eur: { name: "EUR", symbol: "€", pos: "post", regexes: [
-		{ regex: /(?:\s|^|,|\.|!|\?|\*)([\d,]+(?:\.\d+)?)(?:€|e| eur(?:o|os)?)(?=\s|$|,|\.|!|\?|\*)/ig },
-		{ regex: /(?:\s|^|,|\.|!|\?|\*)€([\d,]+(?:\.\d+)?)(?=\s|$|,|\.|!|\?|\*)/ig }
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)([\d,]+(?:\.\d+)?)([kmb])?(?:€|e| eur(?:o|os)?)(?=\s|$|,|\.|!|\?|\*)/ig },
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)€([\d,]+(?:\.\d+)?)([kmb])?(?=\s|$|,|\.|!|\?|\*)/ig }
 	]},
 	gbp: { name: "GBP", symbol: "£", pos: "pre", regexes: [
-		{ regex: /(?:\s|^|,|\.|!|\?|\*)([\d,]+(?:\.\d+)?)&#163;(?=\s|$|,|\.|!|\?|\*)/ig }, // the &#163; is for £
-		{ regex: /(?:\s|^|,|\.|!|\?|\*)&#163;([\d,]+(?:\.\d+)?)(?=\s|$|,|\.|!|\?|\*)/ig },
-		{ regex: /(?:\s|^|,|\.|!|\?|\*)([\d,]+(?:\.\d+)?)(?:p| pence)(?=\s|$|,|\.|!|\?|\*)/ig, modifier: 0.01}
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)([\d,]+(?:\.\d+)?)([kmb])?&#163;(?=\s|$|,|\.|!|\?|\*)/ig }, // the &#163; is for £
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)&#163;([\d,]+(?:\.\d+)?)([kmb])?(?=\s|$|,|\.|!|\?|\*)/ig },
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)([\d,]+(?:\.\d+)?)([kmb])?(?:p| pence)(?=\s|$|,|\.|!|\?|\*)/ig, modifier: 0.01}
 	]},
 	cad: { name: "CAD", symbol: "CA$", pos: "pre", regexes: [
-		{ regex: /(?:\s|^|,|\.|!|\?|\*)CA\$([\d,]+(?:\.\d+)?)(?=\s|$|,|\.|!|\?|\*)/ig }]},
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)CA\$([\d,]+(?:\.\d+)?)([kmb])?(?=\s|$|,|\.|!|\?|\*)/ig }]},
 	aud: { name: "AUD", symbol: "A$", pos: "pre", regexes: [
-		{ regex: /(?:\s|^|,|\.|!|\?|\*)A\$([\d,]+(?:\.\d+)?)(?=\s|$|,|\.|!|\?|\*)/ig }]},
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)A\$([\d,]+(?:\.\d+)?)([kmb])?(?=\s|$|,|\.|!|\?|\*)/ig }]},
 	nzd: { name: "NZD", symbol: "NZ$", pos :"pre", regexes: [
-		{ regex: /(?:\s|^|,|\.|!|\?|\*)NZ\$([\d,]+(?:\.\d+)?)(?=\s|$|,|\.|!|\?|\*)/ig }]},
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)NZ\$([\d,]+(?:\.\d+)?)([kmb])?(?=\s|$|,|\.|!|\?|\*)/ig }]},
 	sek: { name: "SEK", symbol: " kr", pos: "post", regexes: [
-		{ regex: /(?:\s|^|,|\.|!|\?|\*)([\d,]+(?:\.\d+)?) ?kr(?=\s|$|,|\.|!|\?|\*)/ig }]}, // kr defaults to swedish kronor
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)([\d,]+(?:\.\d+)?)([kmb])? ?kr(?=\s|$|,|\.|!|\?|\*)/ig }]}, // kr defaults to swedish kronor
 	nok: { name: "NOK", symbol: " nok", pos: "post", regexes: [
-		{ regex: /(?:\s|^|,|\.|!|\?|\*)([\d,]+(?:\.\d+)?) ?nok(?=\s|$|,|\.|!|\?|\*)/ig }]}, // special cases for norwegian and danish kronor whatevers
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)([\d,]+(?:\.\d+)?)([kmb])? ?nok(?=\s|$|,|\.|!|\?|\*)/ig }]}, // special cases for norwegian and danish kronor whatevers
 	dkk: { name: "DKK", symbol: " dkk", pos: "post", regexes: [
-		{ regex: /(?:\s|^|,|\.|!|\?|\*)([\d,]+(?:\.\d+)?) ?dkk(?=\s|$|,|\.|!|\?|\*)/ig }]},
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)([\d,]+(?:\.\d+)?)([kmb])? ?dkk(?=\s|$|,|\.|!|\?|\*)/ig }]},
 	zar: { name: "ZAR", symbol: "R", pos: "pre", regexes: [
-		{ regex: /(?:\s|^|,|\.|!|\?|\*)R([\d,]+(?:\.\d+)?)(?=\s|$|,|\.|!|\?|\*)/ig }]}
+		{ regex: /(?:\s|^|,|\.|!|\?|\*)R([\d,]+(?:\.\d+)?)([kmb])?(?=\s|$|,|\.|!|\?|\*)/ig }]}
 };
 
 // first of all, setup the currency conversion
@@ -174,6 +180,7 @@ function commonConversion(message, from, to) {
 			
 			var offset = 0;
 			var amountStr = m[1];
+			var prefix = m[2];
 			
 			if (amountStr.substring(0, 1) == ",") {
 				amountStr = amountStr.substring(1);
@@ -182,6 +189,11 @@ function commonConversion(message, from, to) {
 			}
 			
 			var amount = Number(amountStr.replace(",", "")) * (regexModifierPair.modifier || 1);
+			
+			if (prefix) {
+				amount *= prefixes[prefix];
+			}
+			
 			var converted = Math.round(fx(amount).from(from.name).to(to.name) * 100) / 100; // two decimals is enough for currencies
 
 			results[results.length] = {original: m[0], index: m.index + offset, conversion: converted, currency: to};
