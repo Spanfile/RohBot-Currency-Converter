@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         RohBot Currency Converter
-// @version      1.26
+// @version      1.27
 // @description  Allows the user to select their currency and then converts any found currencies to the one the user selected
 // @author       Spans
 // @match        https://rohbot.net
@@ -192,7 +192,7 @@ function commonConversion(message, from, to) {
 			var amount = Number(amountStr.replace(",", "")) * (regexModifierPair.modifier || 1);
 			
 			if (prefix) {
-				amount *= prefixes[prefix];
+				amount *= prefixes[prefix.toLowerCase()];
 			}
 			
 			var converted = Math.round(fx(amount).from(from.name).to(to.name) * 100) / 100; // two decimals is enough for currencies
