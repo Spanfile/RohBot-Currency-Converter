@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         RohBot Currency Converter
-// @version      1.28
+// @version      1.29
 // @description  Allows the user to select their currency and then converts any found currencies to the one the user selected
 // @author       Spans
 // @match        https://rohbot.net
@@ -205,7 +205,7 @@ function commonConversion(message, from, to) {
 }
 
 function formatCurrency(value, currency) {
-	var locale = value.toLocaleString();
+	var locale = (Math.round(value * 100) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 });
 	return currency.pos === "pre" ? currency.symbol + locale : locale + currency.symbol;
 }
 
